@@ -5,7 +5,7 @@ import ProductCard from './ProductCard.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import penOnyxBlack from '../assets/Fountain_Pens/Fountain-pen(OnyxBlack).webp';
 import penNavyBlue from '../assets/Fountain_Pens/Fountain-pen(NavyBlue).webp';
-import penCrimson from '../assets/Fountain_Pens/Fountain-pen(crimsomwebp.webp';
+import penCrimson from '../assets/Fountain_Pens/Fountain-pen(crimsomwebp).webp';
 import inkMidnight from '../assets/Inks/Midnight-Ink.webp';
 import journalTan from '../assets/NotesBooks&Paper/journal(Tanleather).webp';
 import journalBrown from '../assets/NotesBooks&Paper/journal(DarkBrown).webp';

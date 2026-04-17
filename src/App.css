@@ -11,18 +11,446 @@
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInFromBottom {
-  from { opacity: 0; transform: translateY(2rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes bounceSlow {
-  0%, 100% { transform: translateY(-5%); }
-  50% { transform: translateY(0); }
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   STATIONERY FLOATING ANIMATIONS
+   ========================================= */
+
+/* Base floating keyframes — each with slightly different arc */
+@keyframes floatA {
+  0% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+
+  33% {
+    transform: translateY(-14px) rotate(calc(var(--base-rot, 0deg) + 4deg));
+  }
+
+  66% {
+    transform: translateY(-6px) rotate(calc(var(--base-rot, 0deg) - 2deg));
+  }
+
+  100% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+@keyframes floatB {
+  0% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+
+  40% {
+    transform: translateY(-20px) rotate(calc(var(--base-rot, 0deg) - 5deg));
+  }
+
+  75% {
+    transform: translateY(-8px) rotate(calc(var(--base-rot, 0deg) + 3deg));
+  }
+
+  100% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+@keyframes floatC {
+  0% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg)) scale(1);
+  }
+
+  50% {
+    transform: translateY(-16px) rotate(calc(var(--base-rot, 0deg) + 6deg)) scale(1.03);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg)) scale(1);
+  }
+}
+
+@keyframes floatD {
+  0% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+
+  25% {
+    transform: translateY(-10px) rotate(calc(var(--base-rot, 0deg) - 3deg));
+  }
+
+  75% {
+    transform: translateY(-18px) rotate(calc(var(--base-rot, 0deg) + 5deg));
+  }
+
+  100% {
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+@keyframes driftLeft {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+
+  50% {
+    transform: translateX(-8px) translateY(-12px) rotate(calc(var(--base-rot, 0deg) + 4deg));
+  }
+
+  100% {
+    transform: translateX(0px) translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+@keyframes driftRight {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+
+  50% {
+    transform: translateX(8px) translateY(-15px) rotate(calc(var(--base-rot, 0deg) - 4deg));
+  }
+
+  100% {
+    transform: translateX(0px) translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+@keyframes sealSpin {
+  0% {
+    transform: rotate(var(--base-rot, 0deg)) scale(1);
+  }
+
+  50% {
+    transform: rotate(calc(var(--base-rot, 0deg) + 12deg)) scale(1.08);
+  }
+
+  100% {
+    transform: rotate(var(--base-rot, 0deg)) scale(1);
+  }
+}
+
+/* Entry animation — items drift in from edges on page load */
+@keyframes entryFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) rotate(var(--base-rot, 0deg));
+  }
+
+  to {
+    opacity: var(--final-opacity, 0.13);
+    transform: translateY(0px) rotate(var(--base-rot, 0deg));
+  }
+}
+
+/* ── Stationery Layer Container ── */
+.stationery-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* ── Shared base for all items ── */
+.stat-item {
+  position: absolute;
+  pointer-events: none;
+  /* Entry fade */
+  animation: entryFadeUp 0.9s ease forwards;
+  /* Default opacity after entry handled per-item below */
+}
+
+/* ── Per-item: rotation, opacity, float keyframe, duration, delay ── */
+
+.stat-pencil-1 {
+  --base-rot: -30deg;
+  --final-opacity: 0.12;
+  opacity: 0.12;
+  animation:
+    entryFadeUp 1.0s ease 0.1s forwards,
+    floatA 6s ease-in-out 1.1s infinite;
+}
+
+.stat-notebook-1 {
+  --base-rot: 14deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation:
+    entryFadeUp 1.0s ease 0.3s forwards,
+    floatB 7.5s ease-in-out 1.3s infinite;
+}
+
+.stat-pen-1 {
+  --base-rot: 65deg;
+  --final-opacity: 0.13;
+  opacity: 0.13;
+  animation:
+    entryFadeUp 1.0s ease 0.5s forwards,
+    floatC 5s ease-in-out 1.5s infinite;
+}
+
+.stat-clip-1 {
+  --base-rot: 40deg;
+  --final-opacity: 0.14;
+  opacity: 0.14;
+  animation:
+    entryFadeUp 1.0s ease 0.2s forwards,
+    floatD 6.5s ease-in-out 1.2s infinite;
+}
+
+.stat-seal-1 {
+  --base-rot: -8deg;
+  --final-opacity: 0.14;
+  opacity: 0.14;
+  animation:
+    entryFadeUp 1.0s ease 0.7s forwards,
+    sealSpin 8s ease-in-out 1.7s infinite;
+}
+
+.stat-ruler-1 {
+  --base-rot: -5deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 0.4s forwards,
+    driftLeft 9s ease-in-out 1.4s infinite;
+}
+
+.stat-ink-1 {
+  --base-rot: 8deg;
+  --final-opacity: 0.12;
+  opacity: 0.12;
+  animation:
+    entryFadeUp 1.0s ease 0.6s forwards,
+    floatA 6.5s ease-in-out 1.6s infinite;
+}
+
+.stat-paper-1 {
+  --base-rot: -18deg;
+  --final-opacity: 0.09;
+  opacity: 0.09;
+  animation:
+    entryFadeUp 1.0s ease 0.8s forwards,
+    floatB 9.5s ease-in-out 1.8s infinite;
+}
+
+.stat-eraser-1 {
+  --base-rot: -10deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation:
+    entryFadeUp 1.0s ease 0.9s forwards,
+    driftRight 7.5s ease-in-out 1.9s infinite;
+}
+
+.stat-scissors-1 {
+  --base-rot: 20deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 0.35s forwards,
+    floatC 6.5s ease-in-out 1.35s infinite;
+}
+
+.stat-tape-1 {
+  --base-rot: 5deg;
+  --final-opacity: 0.12;
+  opacity: 0.12;
+  animation:
+    entryFadeUp 1.0s ease 0.55s forwards,
+    floatD 8s ease-in-out 1.55s infinite;
+}
+
+.stat-pencil-2 {
+  --base-rot: 10deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 1.0s forwards,
+    floatA 7s ease-in-out 2.0s infinite;
+}
+
+.stat-pen-2 {
+  --base-rot: -50deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation:
+    entryFadeUp 1.0s ease 0.15s forwards,
+    floatB 5.5s ease-in-out 1.15s infinite;
+}
+
+.stat-clip-2 {
+  --base-rot: -25deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 0.75s forwards,
+    driftLeft 6s ease-in-out 1.75s infinite;
+}
+
+.stat-eraser-2 {
+  --base-rot: 15deg;
+  --final-opacity: 0.12;
+  opacity: 0.12;
+  animation:
+    entryFadeUp 1.0s ease 0.4s forwards,
+    driftRight 6s ease-in-out 1.4s infinite;
+}
+
+.stat-ruler-2 {
+  --base-rot: -20deg;
+  --final-opacity: 0.09;
+  opacity: 0.09;
+  animation:
+    entryFadeUp 1.0s ease 0.6s forwards,
+    floatD 7s ease-in-out 1.6s infinite;
+}
+
+.stat-tape-2 {
+  --base-rot: -12deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation:
+    entryFadeUp 1.0s ease 0.8s forwards,
+    floatA 5s ease-in-out 1.8s infinite;
+}
+
+.stat-ink-2 {
+  --base-rot: -5deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 0.5s forwards,
+    driftLeft 6.5s ease-in-out 1.5s infinite;
+}
+
+.stat-notebook-2 {
+  --base-rot: 8deg;
+  --final-opacity: 0.13;
+  opacity: 0.13;
+  animation:
+    entryFadeUp 1.0s ease 0.9s forwards,
+    floatC 5.5s ease-in-out 1.9s infinite;
+}
+
+.stat-scissors-2 {
+  --base-rot: -35deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation:
+    entryFadeUp 1.0s ease 0.7s forwards,
+    floatB 5.5s ease-in-out 1.7s infinite;
+}
+
+.stat-paper-2 {
+  --base-rot: 18deg;
+  --final-opacity: 0.09;
+  opacity: 0.09;
+  animation:
+    entryFadeUp 1.0s ease 0.8s forwards,
+    floatA 6.5s ease-in-out 1.8s infinite;
+}
+
+.stat-seal-2 {
+  --base-rot: 25deg;
+  --final-opacity: 0.14;
+  opacity: 0.14;
+  animation:
+    entryFadeUp 1.0s ease 0.6s forwards,
+    sealSpin 6s ease-in-out 1.6s infinite;
+}
+
+.stat-pencil-3 {
+  --base-rot: 45deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation: entryFadeUp 1.0s ease 0.9s forwards, floatB 6.5s ease-in-out 1.9s infinite;
+}
+
+.stat-pen-3 {
+  --base-rot: -15deg;
+  --final-opacity: 0.12;
+  opacity: 0.12;
+  animation: entryFadeUp 1.0s ease 0.5s forwards, driftRight 7s ease-in-out 1.5s infinite;
+}
+
+.stat-clip-3 {
+  --base-rot: 60deg;
+  --final-opacity: 0.10;
+  opacity: 0.10;
+  animation: entryFadeUp 1.0s ease 0.8s forwards, floatA 5.5s ease-in-out 1.8s infinite;
+}
+
+.stat-ruler-3 {
+  --base-rot: 12deg;
+  --final-opacity: 0.09;
+  opacity: 0.09;
+  animation: entryFadeUp 1.0s ease 0.7s forwards, driftLeft 8s ease-in-out 1.7s infinite;
+}
+
+.stat-paper-3 {
+  --base-rot: -25deg;
+  --final-opacity: 0.11;
+  opacity: 0.11;
+  animation: entryFadeUp 1.0s ease 0.4s forwards, floatC 6.5s ease-in-out 1.4s infinite;
+}
+
+.stat-tape-3 {
+  --base-rot: 35deg;
+  --final-opacity: 0.13;
+  opacity: 0.13;
+  animation: entryFadeUp 1.0s ease 0.6s forwards, floatD 7.5s ease-in-out 1.6s infinite;
+}
+
+/* Reduce motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .stat-item {
+    animation: entryFadeUp 0.4s ease forwards !important;
+  }
+}
+
+/* ── Grid overlay texture (very subtle ruled paper feel) ── */
+.landing-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg,
+      transparent,
+      transparent 31px,
+      rgba(38, 70, 83, 0.04) 32px);
 }
 
 /* Typography styles */
@@ -30,7 +458,10 @@
   font-family: 'Playfair Display', serif;
 }
 
-.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
 
 /* Landing Page */
 .landing-container {
@@ -334,11 +765,16 @@
   border-radius: 1rem;
   border: 1px solid #f1f5f9;
   background-color: #f8fafc;
+  color: #1e293b;
   outline: none;
   transition: all 0.2s;
   box-sizing: border-box;
   font-family: inherit;
   font-size: 1rem;
+}
+
+.form-input::placeholder {
+  color: #94a3b8;
 }
 
 .form-input:focus {
@@ -410,7 +846,8 @@
   z-index: 40;
 }
 
-.header-left, .header-right {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -441,7 +878,8 @@
   }
 }
 
-.cart-toggle-btn, .logout-btn {
+.cart-toggle-btn,
+.logout-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -455,7 +893,8 @@
   border-radius: 0.5rem;
 }
 
-.cart-toggle-btn:hover, .logout-btn:hover {
+.cart-toggle-btn:hover,
+.logout-btn:hover {
   color: #2A9D8F;
   background-color: #f1f5f9;
 }
@@ -620,6 +1059,7 @@
   color: #264653;
   margin: 0;
 }
+
 .text-slate {
   color: #64748b;
   margin: 0;
@@ -689,7 +1129,7 @@
   color: #1e293b;
   margin-bottom: 0.5rem;
   font-weight: 700;
-  height: 3rem; /* Fixed height for title to align items properly */
+  height: 3rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -929,9 +1369,17 @@
   color: #264653;
 }
 
-.mt-4 { margin-top: 1rem; }
-.w-full { width: 100%; }
-.justify-center { justify-content: center; }
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.justify-center {
+  justify-content: center;
+}
 
 .no-products-found {
   grid-column: 1 / -1;
