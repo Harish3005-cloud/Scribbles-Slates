@@ -1,37 +1,34 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const express  = require('express');
+const cors     = require('cors');
+const dotenv   = require('dotenv');
 const mongoose = require('mongoose');
 
-// Load environment variables (.env file should be created in the server directory)
 dotenv.config();
 
-// Initialize the Express app
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware setup
-app.use(cors()); // Allow Cross-Origin requests
-app.use(express.json()); // Parse incoming JSON requests
+// ─── Middleware ───────────────────────────────────────────────────────────────
+app.use(cors());
+app.use(express.json());
 
-// Basic health check route
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'Scribbles & Slates API is running...' });
 });
 
-// Mount Routes
-app.use('/api/auth', require('./routes/auth'));
+// ─── Routes ───────────────────────────────────────────────────────────────────
+app.use('/api/auth',      require('./routes/auth'));
+app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/cart',      require('./routes/cart'));
+app.use('/api/payment',   require('./routes/payment'));
 
-// Connect to MongoDB (ensure you add MONGO_URI in your .env later)
+// ─── MongoDB ──────────────────────────────────────────────────────────────────
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err.message));
 
-mongoose.connect(process.env.MONGODB_URI).then(() => {
-    console.log('MongoDB connection successful');
-}).catch((err) => {
-    console.error('MongoDB connection error:', err.message);
-});
-
-
-// Start the server
+// ─── Start Server ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });

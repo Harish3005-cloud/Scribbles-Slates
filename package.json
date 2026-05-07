@@ -10,9 +10,14 @@
     "preview": "powershell -ExecutionPolicy Bypass -File node_modules/.bin/vite.ps1 preview"
   },
   "dependencies": {
+    "@tailwindcss/forms": "^0.5.11",
+    "autoprefixer": "^10.5.0",
     "lucide-react": "^1.8.0",
+    "postcss": "^8.5.14",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.15.0",
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
