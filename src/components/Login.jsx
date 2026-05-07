@@ -25,7 +25,7 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      login(data.token, { _id: data._id, name: data.name, email: data.email, role: data.role });
+      login(data.token, { _id: data._id, name: data.name, email: data.email, phone: data.phone, role: data.role });
       navigate('/');
     } catch (err) {
       setError(err.message);

@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, ArrowLeft, Feather } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowLeft, Feather } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const { login }              = useAuth();
   const navigate               = useNavigate();
-  const [formData, setFormData]= useState({ name: '', email: '', password: '' });
+  const [formData, setFormData]= useState({ name: '', email: '', phone: '', password: '' });
   const [error, setError]      = useState('');
   const [loading, setLoading]  = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!formData.name || !formData.email || !formData.password)
+    if (!formData.name || !formData.email || !formData.phone || !formData.password)
       return setError('Please fill all fields');
+    if (!/^\d{10}$/.test(formData.phone))
+      return setError('Enter a valid 10-digit mobile number');
     if (formData.password.length < 6)
       return setError('Password must be at least 6 characters');
 
@@ -28,7 +30,7 @@ export default function Register() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Registration failed');
 
-      login(data.token, { _id: data._id, name: data.name, email: data.email, role: data.role });
+      login(data.token, { _id: data._id, name: data.name, email: data.email, phone: data.phone, role: data.role });
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -81,6 +83,20 @@ export default function Register() {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
+                className="input-field pl-9"
+              />
+            </div>
+
+            <div className="relative">
+              <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
+              <input
+                id="register-phone"
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="Mobile Number (10 digits)"
+                value={formData.phone}
+                onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                 className="input-field pl-9"
               />
             </div>

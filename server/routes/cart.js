@@ -38,22 +38,42 @@ router.post('/sync', protect, async (req, res) => {
     }
 
     // Ensure we only process valid items
-    const validGuestItems = guestItems.filter(i => 
-      typeof i.priceAtAdd === 'number' && 
-      !Number.isNaN(i.priceAtAdd) && 
-      typeof i.name === 'string' && 
-      i.name.trim() !== '' && 
-      typeof i.productId === 'string' && 
+    const validGuestItems = guestItems.filter(i =>
+      typeof i.priceAtAdd === 'number' &&
+      !Number.isNaN(i.priceAtAdd) &&
+      typeof i.name === 'string' &&
+      i.name.trim() !== '' &&
+      typeof i.productId === 'string' &&
       i.productId.trim() !== ''
     );
 
-    // Merge strategy: for each guest item, upsert into the DB cart
-    for (const gItem of validGuestItems) {
+    // Consolidate payload first to avoid duplicate lines caused by null/undefined sku drift.
+    const consolidatedGuestItems = [];
+    for (const rawItem of validGuestItems) {
+      const item = {
+        ...rawItem,
+        variantSku: rawItem.variantSku ?? null,
+        variantName: rawItem.variantName ?? null,
+        qty: Math.max(1, Number(rawItem.qty) || 1),
+      };
+      const existingInPayload = consolidatedGuestItems.find(
+        i => i.productId === item.productId && i.variantSku === item.variantSku
+      );
+      if (existingInPayload) {
+        existingInPayload.qty += item.qty;
+      } else {
+        consolidatedGuestItems.push(item);
+      }
+    }
+
+    // Merge strategy: idempotent upsert.
+    // Keep higher qty between DB and guest snapshot for the same item key.
+    for (const gItem of consolidatedGuestItems) {
       const existing = cart.items.find(
-        i => i.productId === gItem.productId && i.variantSku === gItem.variantSku
+        i => i.productId === gItem.productId && (i.variantSku ?? null) === gItem.variantSku
       );
       if (existing) {
-        existing.qty += gItem.qty;  // accumulate qty
+        existing.qty = Math.max(existing.qty, gItem.qty);
       } else {
         cart.items.push(gItem);
       }

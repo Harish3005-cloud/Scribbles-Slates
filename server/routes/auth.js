@@ -14,10 +14,14 @@ const generateToken = (id) => {
 // @desc    Register a newly joined user
 // @access  Public
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone } = req.body;
 
   try {
     // 1. Check if user already exists
+    if (!phone || !/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ message: 'Please enter a valid 10-digit mobile number' });
+    }
+
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -28,6 +32,7 @@ router.post('/register', async (req, res) => {
     const user = await User.create({
       name,
       email,
+      phone,
       password,
     });
 
@@ -37,6 +42,7 @@ router.post('/register', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         token: generateToken(user._id),
       });
@@ -65,6 +71,7 @@ router.post('/login', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         token: generateToken(user._id),
       });
