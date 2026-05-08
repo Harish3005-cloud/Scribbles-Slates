@@ -28,6 +28,7 @@ const makeAdmin = async () => {
       user = new User({
         name: 'Harish Admin',
         email,
+        phone: '9999999999',
         password, // Pre-save hook hashes it
         role: 'admin'
       });

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Minus, Plus, Loader2, AlertCircle, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { resolveCatalogImage } from '../utils/productImages.js';
 
 const API = 'http://localhost:5000/api';
-const resolveImage = (filename) => `/images/${filename}`;
 
 export default function ProductDetail() {
   const { id }           = useParams();
@@ -29,9 +29,9 @@ export default function ProductDetail() {
         const normalised = {
           ...data,
           id:    data.productId,
-          image: resolveImage(data.image),
+          image: resolveCatalogImage({ name: data.name, image: data.image }),
           variants: data.variants?.length
-            ? data.variants.map(v => ({ ...v, image: resolveImage(v.imageURL || data.image) }))
+            ? data.variants.map(v => ({ ...v, image: resolveCatalogImage({ name: v.name, image: v.imageURL || data.image }) }))
             : null,
         };
         setProduct(normalised);

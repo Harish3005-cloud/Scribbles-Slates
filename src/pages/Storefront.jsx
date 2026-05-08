@@ -3,21 +3,19 @@ import { useSearchParams } from 'react-router-dom';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import CategoryBar from '../components/CategoryBar.jsx';
 import ProductCard from '../components/ProductCard.jsx';
+import { resolveCatalogImage } from '../utils/productImages.js';
 
 const API = 'http://localhost:5000/api';
-
-// Image resolution helper (same logic as before)
-const resolveImage = (filename) => `/images/${filename}`;
 
 // Attach /images/ prefix to variant imageURL if present, else fall back
 const normaliseProduct = (p) => ({
   ...p,
   id:    p.productId,
-  image: resolveImage(p.image),
+  image: resolveCatalogImage({ name: p.name, image: p.image }),
   variants: p.variants?.length
     ? p.variants.map(v => ({
         ...v,
-        image: resolveImage(v.imageURL || p.image),
+        image: resolveCatalogImage({ name: v.name, image: v.imageURL || p.image }),
       }))
     : null,
 });

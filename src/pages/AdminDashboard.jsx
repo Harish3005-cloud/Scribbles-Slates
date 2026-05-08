@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Plus, Edit2, Trash2, Image as ImageIcon, X } from 'lucide-react';
+import { resolveCatalogImage } from '../utils/productImages.js';
 
 const API = 'http://localhost:5000/api';
 
@@ -132,7 +133,7 @@ export default function AdminDashboard() {
               {products.map(p => (
                 <tr key={p.productId} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4">
-                    <img src={`/images/${p.image}`} alt={p.name} className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
+                    <img src={resolveCatalogImage({ name: p.name, image: p.image })} alt={p.name} className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
                   </td>
                   <td className="p-4 font-medium text-gray-800">
                     {p.name} 

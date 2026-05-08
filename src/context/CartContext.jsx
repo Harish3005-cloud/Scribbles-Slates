@@ -1,9 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { resolveCatalogImage } from '../utils/productImages.js';
 
 const CartContext = createContext(null);
 const API = 'http://localhost:5000/api';
-const LS_KEY = 'ss_cart';
+const GUEST_LS_KEY = 'ss_cart_guest';
+const USER_LS_KEY_PREFIX = 'ss_cart_user_';
+const SYNC_MARKER_PREFIX = 'ss_cart_sync_done_';
 
 // ─── Pricing logic (mirrors backend utils/pricing.js) ────────────────────────
 function calculateTotal(items = []) {
@@ -65,11 +68,40 @@ function cartReducer(state, action) {
   }
 }
 
-function loadFromLS() {
+function sanitizeCartItems(items = []) {
+  return items.filter(
+    i => i
+      && typeof i.priceAtAdd === 'number'
+      && !Number.isNaN(i.priceAtAdd)
+      && i.qty > 0
+      && i.name
+      && i.productId
+  );
+}
+
+function loadGuestCart() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(LS_KEY)) || [];
-    // Aggressively filter out any corrupted items from local storage
-    return parsed.filter(i => i && typeof i.priceAtAdd === 'number' && !Number.isNaN(i.priceAtAdd) && i.qty > 0 && i.name && i.productId);
+    const parsed = JSON.parse(localStorage.getItem(GUEST_LS_KEY)) || [];
+    return sanitizeCartItems(parsed);
+  } catch {
+    return [];
+  }
+}
+
+function getUserCartKey(userId) {
+  return userId ? `${USER_LS_KEY_PREFIX}${userId}` : null;
+}
+
+function getSyncMarkerKey(userId) {
+  return userId ? `${SYNC_MARKER_PREFIX}${userId}` : null;
+}
+
+function loadUserCartCache(userId) {
+  const key = getUserCartKey(userId);
+  if (!key) return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key)) || [];
+    return sanitizeCartItems(parsed);
   } catch {
     return [];
   }
@@ -79,26 +111,66 @@ function loadFromLS() {
 export function CartProvider({ children }) {
   const { user, token } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const prevTokenRef = useRef(token);
+  const hasHydratedRef = useRef(false);
+  const lastSyncedTokenRef = useRef(null);
+  const userId = user?._id ?? null;
 
   // Initialise: load from localStorage on mount
   useEffect(() => {
-    dispatch({ type: 'SET_ITEMS', payload: loadFromLS() });
-  }, []);
-
-  // Persist guest cart to localStorage whenever items change
-  useEffect(() => {
-    if (!token) {
-      localStorage.setItem(LS_KEY, JSON.stringify(state.items));
+    if (token && userId) {
+      dispatch({ type: 'SET_ITEMS', payload: loadUserCartCache(userId) });
+    } else {
+      dispatch({ type: 'SET_ITEMS', payload: loadGuestCart() });
     }
-  }, [state.items, token]);
+    hasHydratedRef.current = true;
+  }, [token, userId]);
+
+  // Persist current cart to correct local cache based on auth state
+  useEffect(() => {
+    if (!hasHydratedRef.current) return;
+    if (token && userId) {
+      localStorage.setItem(getUserCartKey(userId), JSON.stringify(state.items));
+    } else {
+      localStorage.setItem(GUEST_LS_KEY, JSON.stringify(state.items));
+    }
+  }, [state.items, token, userId]);
+
+  // On logout, restore guest cart snapshot so authenticated cart does not leak.
+  useEffect(() => {
+    const hadToken = Boolean(prevTokenRef.current);
+    const hasToken = Boolean(token);
+    if (hadToken && !hasToken) {
+      // Carry the latest signed-in cart into guest mode for continuity.
+      localStorage.setItem(GUEST_LS_KEY, JSON.stringify(state.items));
+      dispatch({ type: 'SET_ITEMS', payload: sanitizeCartItems(state.items) });
+      if (userId) {
+        sessionStorage.removeItem(getSyncMarkerKey(userId));
+      }
+    }
+    prevTokenRef.current = token;
+  }, [token, state.items, userId]);
 
   // On login → sync local cart to MongoDB then load server cart
   useEffect(() => {
-    if (!token) return;
-    const guestItems = loadFromLS();
+    if (!token || !userId) return;
+    if (lastSyncedTokenRef.current === token) return;
+    const syncMarkerKey = getSyncMarkerKey(userId);
+    if (syncMarkerKey && sessionStorage.getItem(syncMarkerKey) === token) return;
+    lastSyncedTokenRef.current = token;
+
+    const guestItems = loadGuestCart();
 
     const syncCart = async () => {
       try {
+        const cachedUserItems = loadUserCartCache(userId);
+        if (cachedUserItems.length) {
+          dispatch({ type: 'SET_ITEMS', payload: cachedUserItems });
+        }
+
+        // Consume guest cart before sync so repeated effects can't re-send it.
+        localStorage.removeItem(GUEST_LS_KEY);
+
         const res = await fetch(`${API}/cart/sync`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -107,14 +179,19 @@ export function CartProvider({ children }) {
         if (res.ok) {
           const data = await res.json();
           dispatch({ type: 'SET_ITEMS', payload: data.items });
-          localStorage.removeItem(LS_KEY);
+          localStorage.setItem(getUserCartKey(userId), JSON.stringify(data.items));
+          if (syncMarkerKey) sessionStorage.setItem(syncMarkerKey, token);
+        } else {
+          // Restore guest cart if sync fails.
+          localStorage.setItem(GUEST_LS_KEY, JSON.stringify(guestItems));
         }
       } catch (err) {
+        localStorage.setItem(GUEST_LS_KEY, JSON.stringify(guestItems));
         console.error('Cart sync failed:', err);
       }
     };
     syncCart();
-  }, [token]); // eslint-disable-line
+  }, [token, userId]); // eslint-disable-line
 
   // ─── Actions ───────────────────────────────────────────────────────────────
 
@@ -129,7 +206,7 @@ export function CartProvider({ children }) {
       variantSku:  variant?.sku   ?? null,
       variantName: variant?.name  ?? null,
       name:        product.name,
-      image:       variant?.imageURL ? `/images/${variant.imageURL}` : `/images/${product.image}`,
+      image:       variant?.image || resolveCatalogImage({ name: product.name, image: variant?.imageURL || product.image }),
       priceAtAdd:  product.price,
       qty,
     };
@@ -182,8 +259,12 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR' });
-    localStorage.removeItem(LS_KEY);
-  }, []);
+    if (token && userId) {
+      localStorage.removeItem(getUserCartKey(userId));
+    } else {
+      localStorage.removeItem(GUEST_LS_KEY);
+    }
+  }, [token, userId]);
 
   const { lineItems, subtotal } = calculateTotal(state.items);
   const itemCount = state.items.reduce((s, i) => s + i.qty, 0);

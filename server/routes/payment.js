@@ -6,8 +6,10 @@ const { protect }        = require('../middleware/auth');
 const Cart               = require('../models/Cart');
 const Order              = require('../models/Order');
 const Inventory          = require('../models/Inventory');
+const User               = require('../models/User');
 const { checkStock }     = require('../middleware/stockCheck');
 const { calculateTotal } = require('../utils/pricing');
+const { notifyOrderStatus } = require('../utils/orderNotifications');
 
 // Initialise Razorpay instance (uses test keys from .env)
 const razorpay = new Razorpay({
@@ -144,6 +146,9 @@ router.post('/verify', protect, async (req, res) => {
         );
       }
     }
+
+    const user = await User.findById(req.user._id).select('name email phone');
+    await notifyOrderStatus({ order, user });
 
     // 4. Clear the user's cart
     await Cart.findOneAndUpdate(
